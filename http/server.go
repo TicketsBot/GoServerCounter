@@ -70,10 +70,9 @@ func TotalHandler(ctx *fasthttp.RequestCtx) {
 }
 
 func UpdateHandler(ctx *fasthttp.RequestCtx) {
-	fmt.Println(string(ctx.PostBody()))
 	var body UpdateBody
-	err := json.Unmarshal(ctx.PostBody(), body); if err != nil {
-		log.Print(err.Error())
+	err := json.Unmarshal(ctx.PostBody(), &body); if err != nil {
+		log.Println(err.Error())
 		Respond(ctx, 400, GenericResponse{Success:false})
 		return
 	}
