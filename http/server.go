@@ -6,6 +6,7 @@ import (
 	"github.com/TicketsBot/GoServerCounter/config"
 	"github.com/qiangxue/fasthttp-routing"
 	"github.com/valyala/fasthttp"
+	"log"
 	"sync"
 )
 
@@ -69,8 +70,10 @@ func TotalHandler(ctx *fasthttp.RequestCtx) {
 }
 
 func UpdateHandler(ctx *fasthttp.RequestCtx) {
+	fmt.Println(string(ctx.PostBody()))
 	var body UpdateBody
 	err := json.Unmarshal(ctx.PostBody(), body); if err != nil {
+		log.Print(err.Error())
 		Respond(ctx, 400, GenericResponse{Success:false})
 		return
 	}
@@ -91,7 +94,7 @@ func Respond(ctx *fasthttp.RequestCtx, responseCode int, response interface{}) {
 	marshalled, err := json.Marshal(response)
 
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		ctx.Response.SetStatusCode(500)
 		_, err := fmt.Fprintln(ctx, "An internal server occurred")
 
