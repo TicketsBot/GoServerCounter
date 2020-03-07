@@ -42,6 +42,13 @@ func StartServer() {
 		return nil
 	})
 
+	// /total/prometheus
+	prometheusHandler := fasthttp.CompressHandler(PrometheusHandler)
+	router.Get("/total/prometheus", func(ctx *routing.Context) error {
+		prometheusHandler(ctx.RequestCtx)
+		return nil
+	})
+
 	// /update
 	updateHandler := fasthttp.CompressHandler(UpdateHandler)
 	router.Post("/update", func(ctx *routing.Context) error {
@@ -67,6 +74,25 @@ func TotalHandler(ctx *fasthttp.RequestCtx) {
 		Success: true,
 		Count: total,
 	})
+}
+
+func PrometheusHandler(ctx *fasthttp.RequestCtx) {
+	ctx.SetContentType("application/json; charset=utf8")
+	ctx.Response.SetStatusCode(200)
+
+	total := 0
+	lock.Lock()
+	defer lock.Unlock()
+	for _, count := range counts {
+		total += count
+	}
+
+	res := fmt.Sprintf("tickets_servercount=%d", total)
+
+	_, err := fmt.Fprintln(ctx, res)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
 
 func UpdateHandler(ctx *fasthttp.RequestCtx) {
