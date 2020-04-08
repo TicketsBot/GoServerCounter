@@ -5,23 +5,25 @@ import (
 	"io/ioutil"
 )
 
-type(
+type (
 	Config struct {
-		Host string
-		Key string
+		Host        string
+		PostgresUri string
 	}
 )
 
-var(
+var (
 	Conf Config
 )
 
 func LoadConfig() {
-	raw, err := ioutil.ReadFile("config.toml"); if err != nil {
+	raw, err := ioutil.ReadFile("config.toml")
+	if err != nil {
 		panic(err)
 	}
 
-	_, err = toml.Decode(string(raw), &Conf); if err != nil {
+	_, err = toml.Decode(string(raw), &Conf)
+	if err != nil {
 		panic(err)
 	}
 }

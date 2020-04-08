@@ -7,7 +7,6 @@ import (
 	"github.com/qiangxue/fasthttp-routing"
 	"github.com/valyala/fasthttp"
 	"log"
-	"sync"
 )
 
 type(
@@ -19,17 +18,10 @@ type(
 	GenericResponse struct {
 		Success bool `json:"success"`
 	}
-
-	UpdateBody struct {
-		Key string `json:"key"`
-		Shard int `json:"shard"`
-		ServerCount int `json:"serverCount"`
-	}
 )
 
 var(
-	counts = make(map[int]int)
-	lock sync.Mutex
+	Count int
 )
 
 func StartServer() {
@@ -49,67 +41,27 @@ func StartServer() {
 		return nil
 	})
 
-	// /update
-	updateHandler := fasthttp.CompressHandler(UpdateHandler)
-	router.Post("/update", func(ctx *routing.Context) error {
-		updateHandler(ctx.RequestCtx)
-		return nil
-	})
-
 	err := fasthttp.ListenAndServe(config.Conf.Host, router.HandleRequest); if err != nil {
 		panic(err)
 	}
 }
 
 func TotalHandler(ctx *fasthttp.RequestCtx) {
-	total := 0
-
-	lock.Lock()
-	defer lock.Unlock()
-	for _, count := range counts {
-		total += count
-	}
-
 	Respond(ctx, 200, Total{
 		Success: true,
-		Count: total,
+		Count: Count,
 	})
 }
 
 func PrometheusHandler(ctx *fasthttp.RequestCtx) {
-	ctx.SetContentType("application/json; charset=utf8")
 	ctx.Response.SetStatusCode(200)
 
-	total := 0
-	lock.Lock()
-	defer lock.Unlock()
-	for _, count := range counts {
-		total += count
-	}
-
-	res := fmt.Sprintf("tickets_servercount=%d", total)
+	res := fmt.Sprintf("tickets_servercount=%d", Count)
 
 	_, err := fmt.Fprintln(ctx, res)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-}
-
-func UpdateHandler(ctx *fasthttp.RequestCtx) {
-	var body UpdateBody
-	err := json.Unmarshal(ctx.PostBody(), &body); if err != nil {
-		log.Println(err.Error())
-		Respond(ctx, 400, GenericResponse{Success:false})
-		return
-	}
-
-	lock.Lock()
-	defer lock.Unlock()
-	counts[body.Shard] = body.ServerCount
-
-	fmt.Println(fmt.Sprintf("%d -> %d", body.Shard, body.ServerCount))
-
-	Respond(ctx, 200, GenericResponse{Success:true})
 }
 
 func Respond(ctx *fasthttp.RequestCtx, responseCode int, response interface{}) {
