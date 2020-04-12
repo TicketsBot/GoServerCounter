@@ -56,7 +56,7 @@ func TotalHandler(ctx *fasthttp.RequestCtx) {
 func PrometheusHandler(ctx *fasthttp.RequestCtx) {
 	ctx.Response.SetStatusCode(200)
 
-	res := fmt.Sprintf("tickets_servercount=%d", Count)
+	res := fmt.Sprintf("tickets_servercount %d", Count)
 
 	_, err := fmt.Fprintln(ctx, res)
 	if err != nil {
