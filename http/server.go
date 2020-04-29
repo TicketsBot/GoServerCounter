@@ -7,6 +7,7 @@ import (
 	"github.com/qiangxue/fasthttp-routing"
 	"github.com/valyala/fasthttp"
 	"log"
+	"sync"
 )
 
 type(
@@ -21,6 +22,7 @@ type(
 )
 
 var(
+	Lock sync.RWMutex
 	Count int
 )
 
@@ -47,6 +49,9 @@ func StartServer() {
 }
 
 func TotalHandler(ctx *fasthttp.RequestCtx) {
+	Lock.RLock()
+	defer Lock.RUnlock()
+
 	Respond(ctx, 200, Total{
 		Success: true,
 		Count: Count,
@@ -56,7 +61,9 @@ func TotalHandler(ctx *fasthttp.RequestCtx) {
 func PrometheusHandler(ctx *fasthttp.RequestCtx) {
 	ctx.Response.SetStatusCode(200)
 
+	Lock.RLock()
 	res := fmt.Sprintf("tickets_servercount %d", Count)
+	Lock.RUnlock()
 
 	_, err := fmt.Fprintln(ctx, res)
 	if err != nil {

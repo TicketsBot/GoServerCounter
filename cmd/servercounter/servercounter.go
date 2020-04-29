@@ -18,7 +18,10 @@ func main() {
 
 func pollDatabase(db *database.Database) {
 	for {
+		http.Lock.Lock()
 		http.Count = db.GetServerCount()
+		http.Lock.Unlock()
+
 		time.Sleep(time.Second * 5)
 	}
 }
