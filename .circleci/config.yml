@@ -12,7 +12,7 @@ jobs:
           keys:
             - v1-pkg-cache
 
-      - run: go build cmd/servercounter/main.go
+      - run: go build ./cmd/servercounter/main.go
 
       - store_artifacts:
           path: /go/src/github.com/TicketsBot/GoServerCounter/main
