@@ -24,7 +24,7 @@ func NewDatabase() *Database {
 func (d *Database) GetServerCount() int {
 	var count int
 
-	if err := d.QueryRow(`SELECT COUNT(*) FROM guilds;`).Scan(&count); err != nil {
+	if err := d.QueryRow(`SELECT COUNT(guild_id) FROM guilds;`).Scan(&count); err != nil {
 		fmt.Printf("An error occurred whilst reading the server count: %s\n", err.Error())
 		return 0
 	}
