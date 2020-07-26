@@ -1,15 +1,12 @@
 package main
 
 import (
-	"github.com/TicketsBot/GoServerCounter/config"
 	"github.com/TicketsBot/GoServerCounter/database"
 	"github.com/TicketsBot/GoServerCounter/http"
 	"time"
 )
 
 func main() {
-	config.LoadConfig()
-
 	db := database.NewDatabase()
 	go pollDatabase(db)
 

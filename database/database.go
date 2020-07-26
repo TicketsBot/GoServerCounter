@@ -5,6 +5,7 @@ import(
 	"fmt"
 	"github.com/TicketsBot/GoServerCounter/config"
 	_ "github.com/lib/pq"
+	"os"
 )
 
 type Database struct {
@@ -12,7 +13,7 @@ type Database struct {
 }
 
 func NewDatabase() *Database {
-	db, err := sql.Open("postgres", config.Conf.PostgresUri); if err != nil {
+	db, err := sql.Open("postgres", os.Getenv("DATABASE_URI")); if err != nil {
 		panic(err)
 	}
 

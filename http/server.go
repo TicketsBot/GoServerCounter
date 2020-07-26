@@ -3,10 +3,10 @@ package http
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/TicketsBot/GoServerCounter/config"
 	"github.com/qiangxue/fasthttp-routing"
 	"github.com/valyala/fasthttp"
 	"log"
+	"os"
 	"sync"
 )
 
@@ -43,7 +43,7 @@ func StartServer() {
 		return nil
 	})
 
-	err := fasthttp.ListenAndServe(config.Conf.Host, router.HandleRequest); if err != nil {
+	err := fasthttp.ListenAndServe(os.Getenv("SERVER_ADDR"), router.HandleRequest); if err != nil {
 		panic(err)
 	}
 }
