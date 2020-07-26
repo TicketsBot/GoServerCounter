@@ -3,7 +3,6 @@ package database
 import(
 	"database/sql"
 	"fmt"
-	"github.com/TicketsBot/GoServerCounter/config"
 	_ "github.com/lib/pq"
 	"os"
 )
