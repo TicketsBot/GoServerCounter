@@ -1,24 +1,11 @@
 package http
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/qiangxue/fasthttp-routing"
-	"github.com/valyala/fasthttp"
-	"log"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"os"
 	"sync"
-)
-
-type(
-	Total struct {
-		Success bool `json:"success"`
-		Count int `json:"count"`
-	}
-
-	GenericResponse struct {
-		Success bool `json:"success"`
-	}
 )
 
 var(
@@ -27,70 +14,35 @@ var(
 )
 
 func StartServer() {
-	router := routing.New()
+	router := gin.Default()
 
-	// /total
-	totalHandler := fasthttp.CompressHandler(TotalHandler)
-	router.Get("/total", func(ctx *routing.Context) error {
-		totalHandler(ctx.RequestCtx)
-		return nil
-	})
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"https://ticketsbot.net"},
+		AllowMethods: []string{"GET"},
+	}))
 
-	// /total/prometheus
-	prometheusHandler := fasthttp.CompressHandler(PrometheusHandler)
-	router.Get("/total/prometheus", func(ctx *routing.Context) error {
-		prometheusHandler(ctx.RequestCtx)
-		return nil
-	})
+	router.GET("/total", TotalHandler)
+	router.GET("/total/prometheus", PrometheusHandler)
 
-	err := fasthttp.ListenAndServe(os.Getenv("SERVER_ADDR"), router.HandleRequest); if err != nil {
+	err := router.Run(os.Getenv("SERVER_ADDR")); if err != nil {
 		panic(err)
 	}
 }
 
-func TotalHandler(ctx *fasthttp.RequestCtx) {
+func TotalHandler(ctx *gin.Context) {
 	Lock.RLock()
 	defer Lock.RUnlock()
 
-	Respond(ctx, 200, Total{
-		Success: true,
-		Count: Count,
+	ctx.JSON(200, gin.H{
+		"success": true,
+		"count": Count,
 	})
 }
 
-func PrometheusHandler(ctx *fasthttp.RequestCtx) {
-	ctx.Response.SetStatusCode(200)
-
+func PrometheusHandler(ctx *gin.Context) {
 	Lock.RLock()
 	res := fmt.Sprintf("tickets_servercount %d", Count)
 	Lock.RUnlock()
 
-	_, err := fmt.Fprintln(ctx, res)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-}
-
-func Respond(ctx *fasthttp.RequestCtx, responseCode int, response interface{}) {
-	ctx.SetContentType("application/json; charset=utf8")
-	ctx.Response.SetStatusCode(responseCode)
-
-	marshalled, err := json.Marshal(response)
-
-	if err != nil {
-		log.Println(err.Error())
-		ctx.Response.SetStatusCode(500)
-		_, err := fmt.Fprintln(ctx, "An internal server occurred")
-
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-
-		return
-	}
-
-	_, err = fmt.Fprintln(ctx, string(marshalled))
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+	ctx.String(200, res)
 }
